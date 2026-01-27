@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #15130f;
+  --color-ink-muted: #5c5950;
+  --color-ink-subtle: #8b8578;
+  --color-surface: #fdf9f1;
+  --color-surface-2: #f3ecdf;
+  --color-surface-3: #e9dfcf;
+  --color-border: #d7cbb8;
+  --color-accent: #e07a5f;
+  --color-accent-strong: #cf6447;
+  --color-olive: #5f7651;
+  --color-rust: #b34a35;
+  --color-sky: #c8d6d5;
+  --radius-card: 20px;
+  --radius-soft: 14px;
+  --radius-pill: 999px;
+  --shadow-card: 0 20px 50px rgba(22, 18, 12, 0.12);
+  --shadow-soft: 0 12px 30px rgba(22, 18, 12, 0.08);
+  --font-sans: var(--font-space);
+  --font-display: var(--font-fraunces);
+  --font-mono: var(--font-jetbrains);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100%;
+  background-color: var(--color-surface-2);
+  background-image:
+    radial-gradient(circle at 10% 10%, rgba(224, 122, 95, 0.22), transparent 50%),
+    radial-gradient(circle at 80% 15%, rgba(200, 214, 213, 0.45), transparent 45%),
+    radial-gradient(circle at 20% 85%, rgba(95, 118, 81, 0.18), transparent 55%),
+    linear-gradient(180deg, rgba(253, 249, 241, 0.9), rgba(243, 236, 223, 0.95));
+  color: var(--color-ink);
+  font-family: var(--font-sans), "Segoe UI", sans-serif;
+}
+
+button {
+  font-family: inherit;
+}
+
+::selection {
+  background: rgba(224, 122, 95, 0.25);
+}
+
+@keyframes rise-in {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.motion-rise {
+  animation: rise-in 0.7s ease both;
+}
+
+.motion-rise-delay-1 {
+  animation-delay: 0.12s;
+}
+
+.motion-rise-delay-2 {
+  animation-delay: 0.24s;
+}
