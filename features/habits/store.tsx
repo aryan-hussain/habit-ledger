@@ -20,7 +20,8 @@ type HabitsContextValue = {
   isSyncing: boolean;
   lastSync: string | null;
   userId: string | null;
-  addHabit: (title: string, kind: HabitKind) => Promise<void>;
+  userProfile: { id: string; email: string | null; fullName: string | null } | null;
+  addHabit: (title: string, kind: HabitKind, reviewWindowDays: number) => Promise<void>;
   removeHabit: (id: string) => Promise<void>;
   setHabitStatus: (id: string, date: string, status: HabitStatus) => Promise<void>;
   clearHabitStatus: (id: string, date: string) => Promise<void>;
@@ -56,6 +57,13 @@ function buildHabitsWithEntries(
 
   return habits
     .filter((habit) => !isDeleted(habit))
+    .map((habit) => ({
+      ...habit,
+      reviewWindowDays:
+        habit.reviewWindowDays && habit.reviewWindowDays > 0
+          ? habit.reviewWindowDays
+          : 7,
+    }))
     .filter((habit) => {
       if (activeUserId && habit.userId && habit.userId !== activeUserId) {
         return false;
@@ -81,6 +89,11 @@ export function HabitsProvider({ children }: { children: React.ReactNode }) {
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSync, setLastSync] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [userProfile, setUserProfile] = useState<{
+    id: string;
+    email: string | null;
+    fullName: string | null;
+  } | null>(null);
   const habitsRef = useRef<Habit[]>([]);
   const entriesRef = useRef<HabitEntry[]>([]);
   const syncingRef = useRef(false);
@@ -145,17 +158,7 @@ export function HabitsProvider({ children }: { children: React.ReactNode }) {
     [updateState]
   );
 
-  useEffect(() => {
-    if (!supabaseReady) {
-      return;
-    }
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) {
-        setUserId(data.user.id);
-        attachLocalUser(data.user.id).then(syncNow);
-      }
-    });
-  }, [attachLocalUser, syncNow]);
+  
 
   const mergeRemote = useCallback(
     async (remoteHabits: Habit[], remoteEntries: HabitEntry[], outbox: OutboxItem[]) => {
@@ -265,8 +268,34 @@ export function HabitsProvider({ children }: { children: React.ReactNode }) {
     if (!supabaseReady) {
       return;
     }
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) {
+        setUserId(data.user.id);
+        setUserProfile({
+          id: data.user.id,
+          email: data.user.email ?? null,
+          fullName: (data.user.user_metadata?.full_name as string) ?? null,
+        });
+        attachLocalUser(data.user.id).then(syncNow);
+      }
+    });
+  }, [attachLocalUser, syncNow]);
+
+  useEffect(() => {
+    if (!supabaseReady) {
+      return;
+    }
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       setUserId(session?.user?.id ?? null);
+      setUserProfile(
+        session?.user
+          ? {
+              id: session.user.id,
+              email: session.user.email ?? null,
+              fullName: (session.user.user_metadata?.full_name as string) ?? null,
+            }
+          : null
+      );
       if (session?.user) {
         attachLocalUser(session.user.id).then(syncNow);
       }
@@ -278,12 +307,12 @@ export function HabitsProvider({ children }: { children: React.ReactNode }) {
   }, [attachLocalUser, syncNow]);
 
   const addHabit = useCallback(
-    async (title: string, kind: HabitKind) => {
+    async (title: string, kind: HabitKind, reviewWindowDays: number) => {
       const trimmed = title.trim();
       if (!trimmed) {
         return;
       }
-      const habit = createHabit(trimmed, kind);
+      const habit = createHabit(trimmed, kind, reviewWindowDays);
       habit.userId = userId;
       const nextHabits = [habit, ...habitsRef.current];
       const nextEntries = entriesRef.current;
@@ -463,6 +492,7 @@ export function HabitsProvider({ children }: { children: React.ReactNode }) {
       isSyncing,
       lastSync,
       userId,
+      userProfile,
       addHabit,
       removeHabit,
       setHabitStatus,
@@ -474,6 +504,7 @@ export function HabitsProvider({ children }: { children: React.ReactNode }) {
       isSyncing,
       lastSync,
       userId,
+      userProfile,
       addHabit,
       removeHabit,
       setHabitStatus,

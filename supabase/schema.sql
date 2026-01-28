@@ -5,6 +5,7 @@ create table if not exists public.habits (
   user_id uuid not null references auth.users(id) on delete cascade,
   title text not null,
   kind text not null check (kind in ('good', 'bad')),
+  review_window_days int not null default 7,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   deleted_at timestamptz

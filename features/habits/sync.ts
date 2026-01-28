@@ -6,6 +6,7 @@ type HabitRow = {
   user_id: string;
   title: string;
   kind: string;
+  review_window_days: number;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -34,6 +35,7 @@ function mapHabitToRow(habit: Habit, userId: string): HabitRow {
     user_id: habit.userId ?? userId,
     title: habit.title,
     kind: habit.kind,
+    review_window_days: habit.reviewWindowDays ?? 7,
     created_at: habit.createdAt,
     updated_at: habit.updatedAt,
     deleted_at: habit.deletedAt ?? null,
@@ -59,6 +61,7 @@ function mapRowToHabit(row: HabitRow): Habit {
     userId: row.user_id,
     title: row.title,
     kind: row.kind as Habit["kind"],
+    reviewWindowDays: row.review_window_days ?? 7,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at,

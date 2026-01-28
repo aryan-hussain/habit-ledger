@@ -7,6 +7,7 @@ export type Habit = {
   userId?: string | null;
   title: string;
   kind: HabitKind;
+  reviewWindowDays: number;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string | null;

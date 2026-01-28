@@ -66,7 +66,7 @@ type NavItem = {
 };
 
 export function Dashboard() {
-  const { habits } = useHabits();
+  const { habits, userId, userProfile } = useHabits();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const todayKey = getTodayKey();
@@ -85,6 +85,15 @@ export function Dashboard() {
     { id: "bad-habits", label: "Bad habits", hint: `${badHabits.length} tracked`, icon: IconAlertCircle },
     { id: "monthly-trends", label: "Monthly trends", hint: "Calendar view", icon: IconCalendar },
   ];
+
+  const initials = userProfile?.fullName
+    ? userProfile.fullName
+        .split(" ")
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase())
+        .join("")
+    : userProfile?.email?.slice(0, 2).toUpperCase();
 
   return (
     <div className="relative min-h-screen lg:flex">
@@ -171,6 +180,33 @@ export function Dashboard() {
           </div>
         </nav>
 
+        {userProfile ? (
+          <div
+            className={cn(
+              "mt-auto w-full space-y-3 rounded-[var(--radius-soft)] border border-border bg-surface/80 p-4 text-sm text-ink",
+              sidebarCollapsed && "lg:flex lg:flex-col lg:items-center lg:p-3"
+            )}
+          >
+            <div className={cn("flex items-center gap-3", sidebarCollapsed && "lg:flex-col")}>
+              <div className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-pill)] bg-surface-3 text-sm font-semibold text-ink">
+                {initials || "U"}
+              </div>
+              <div className={cn("min-w-0", sidebarCollapsed && "lg:hidden")}>
+                <p className="truncate font-semibold">{userProfile.fullName ?? "Account"}</p>
+                <p className="truncate text-xs text-ink-subtle">{userProfile.email ?? ""}</p>
+              </div>
+            </div>
+            <ButtonLink
+              href="/logout"
+              variant="ghost"
+              size="sm"
+              className={cn("w-full justify-start", sidebarCollapsed && "lg:justify-center")}
+            >
+              Logout
+            </ButtonLink>
+          </div>
+        ) : null}
+
         <Button
           size="sm"
           variant="secondary"
@@ -206,33 +242,47 @@ export function Dashboard() {
                 Daily habit ledger
               </p>
               <div className="flex items-center gap-2">
-                <ButtonLink href="/signin" variant="secondary" size="sm">
-                  Sign in
-                </ButtonLink>
-                <ButtonLink href="/signup" variant="primary" size="sm">
-                  Sign up
-                </ButtonLink>
-                <ButtonLink href="/profile" variant="ghost" size="sm">
-                  Profile
-                </ButtonLink>
-                <ButtonLink href="/logout" variant="ghost" size="sm">
-                  Logout
-                </ButtonLink>
+                {!userId ? (
+                  <>
+                    <ButtonLink href="/signin" variant="secondary" size="sm">
+                      Sign in
+                    </ButtonLink>
+                    <ButtonLink href="/signup" variant="primary" size="sm">
+                      Sign up
+                    </ButtonLink>
+                  </>
+                ) : (
+                  <>
+                    <ButtonLink href="/profile" variant="ghost" size="sm">
+                      Profile
+                    </ButtonLink>
+                    <ButtonLink href="/logout" variant="ghost" size="sm">
+                      Logout
+                    </ButtonLink>
+                  </>
+                )}
               </div>
             </div>
             <div className="flex flex-wrap gap-2 lg:hidden">
-              <ButtonLink href="/signin" variant="secondary" size="sm">
-                Sign in
-              </ButtonLink>
-              <ButtonLink href="/signup" variant="primary" size="sm">
-                Sign up
-              </ButtonLink>
-              <ButtonLink href="/profile" variant="ghost" size="sm">
-                Profile
-              </ButtonLink>
-              <ButtonLink href="/logout" variant="ghost" size="sm">
-                Logout
-              </ButtonLink>
+              {!userId ? (
+                <>
+                  <ButtonLink href="/signin" variant="secondary" size="sm">
+                    Sign in
+                  </ButtonLink>
+                  <ButtonLink href="/signup" variant="primary" size="sm">
+                    Sign up
+                  </ButtonLink>
+                </>
+              ) : (
+                <>
+                  <ButtonLink href="/profile" variant="ghost" size="sm">
+                    Profile
+                  </ButtonLink>
+                  <ButtonLink href="/logout" variant="ghost" size="sm">
+                    Logout
+                  </ButtonLink>
+                </>
+              )}
             </div>
             <h2 className="text-4xl font-[var(--font-display)] font-semibold text-ink sm:text-5xl">
               Make every check-in a conscious choice.

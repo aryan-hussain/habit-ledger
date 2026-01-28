@@ -15,6 +15,11 @@ export function getDateKey(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
+export function parseDateKey(key: string) {
+  const [year, month, day] = key.split("-").map(Number);
+  return new Date(year, (month ?? 1) - 1, day ?? 1);
+}
+
 export function addDays(date: Date, amount: number) {
   const next = new Date(date);
   next.setDate(date.getDate() + amount);
@@ -73,13 +78,18 @@ export function getCalendarDays(baseDate: Date, weekStartsOn: 0 | 1 = 1) {
   return days;
 }
 
-export function createHabit(title: string, kind: HabitKind): Habit {
+export function createHabit(
+  title: string,
+  kind: HabitKind,
+  reviewWindowDays: number = 7
+): Habit {
   const timestamp = new Date().toISOString();
   return {
     id: createId(),
     userId: null,
     title: title.trim(),
     kind,
+    reviewWindowDays: Math.max(1, Math.min(90, reviewWindowDays)),
     createdAt: timestamp,
     updatedAt: timestamp,
     deletedAt: null,
@@ -139,6 +149,9 @@ export function calculateSuccessRate(
   days: number = 7,
   baseDate: Date = new Date()
 ) {
+  if (days <= 0) {
+    return 0;
+  }
   const keys = getLastNDays(days, baseDate);
   let successes = 0;
 

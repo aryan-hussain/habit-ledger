@@ -9,10 +9,11 @@ export function HabitForm() {
   const { addHabit } = useHabits();
   const [title, setTitle] = useState("");
   const [kind, setKind] = useState<HabitKind>("good");
+  const [reviewWindowDays, setReviewWindowDays] = useState(7);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    void addHabit(title, kind);
+    void addHabit(title, kind, reviewWindowDays);
     setTitle("");
   };
 
@@ -49,6 +50,32 @@ export function HabitForm() {
           <option value="good">Good habit</option>
           <option value="bad">Bad habit</option>
         </select>
+      </div>
+      <div>
+        <label
+          htmlFor="habit-review-window"
+          className="text-xs font-semibold uppercase tracking-[0.3em] text-ink-subtle"
+        >
+          Review window (days)
+        </label>
+        <input
+          id="habit-review-window"
+          type="number"
+          min={1}
+          max={90}
+          className="mt-2 w-full rounded-[var(--radius-soft)] border border-border bg-surface px-3 py-2 text-sm text-ink shadow-[var(--shadow-soft)] focus:outline-none focus:ring-2 focus:ring-accent/30"
+          value={reviewWindowDays}
+          onChange={(event) =>
+            setReviewWindowDays(
+              Number.isNaN(Number(event.target.value))
+                ? 7
+                : Math.max(1, Math.min(90, Number(event.target.value)))
+            )
+          }
+        />
+        <p className="mt-2 text-xs text-ink-subtle">
+          Choose how many days to measure success for this habit.
+        </p>
       </div>
       <Button type="submit" className="w-full">
         Add habit
