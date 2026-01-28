@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
 import { StatTile } from "@/components/ui/StatTile";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { cn } from "@/lib/cn";
 import { useHabits } from "../store";
 import { formatDisplayDate, getTodayKey } from "../utils";
@@ -142,6 +143,8 @@ export function Dashboard() {
             {sidebarCollapsed ? "HL" : "Daily focus"}
           </h1>
         </div>
+
+        <ThemeToggle collapsed={sidebarCollapsed} />
 
         <nav className={cn("space-y-3", sidebarCollapsed && "lg:w-full")}>
           <p
