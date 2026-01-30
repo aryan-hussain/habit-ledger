@@ -5,16 +5,36 @@ import { Button } from "@/components/ui/Button";
 import type { HabitKind } from "../types";
 import { useHabits } from "../store";
 
-export function HabitForm() {
+type HabitFormProps = {
+  onSubmitted?: () => void;
+};
+
+export function HabitForm({ onSubmitted }: HabitFormProps) {
   const { addHabit } = useHabits();
   const [title, setTitle] = useState("");
   const [kind, setKind] = useState<HabitKind>("good");
   const [reviewWindowDays, setReviewWindowDays] = useState(7);
+  const [errors, setErrors] = useState<{ title?: string; reviewWindowDays?: string }>({});
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    void addHabit(title, kind, reviewWindowDays);
+    const trimmedTitle = title.trim();
+    const nextErrors: { title?: string; reviewWindowDays?: string } = {};
+    if (!trimmedTitle) {
+      nextErrors.title = "Please enter a habit name.";
+    }
+    if (reviewWindowDays < 0 || reviewWindowDays > 90) {
+      nextErrors.reviewWindowDays = "Review window must be between 0 and 90.";
+    }
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors);
+      return;
+    }
+
+    setErrors({});
+    await addHabit(trimmedTitle, kind, reviewWindowDays);
     setTitle("");
+    onSubmitted?.();
   };
 
   return (
@@ -31,8 +51,20 @@ export function HabitForm() {
           className="mt-2 w-full rounded-[var(--radius-soft)] border border-border bg-surface px-3 py-2 text-sm text-ink shadow-[var(--shadow-soft)] focus:outline-none focus:ring-2 focus:ring-accent/30"
           placeholder="Name your habit"
           value={title}
-          onChange={(event) => setTitle(event.target.value)}
+          onChange={(event) => {
+            setTitle(event.target.value);
+            if (errors.title) {
+              setErrors((current) => ({ ...current, title: undefined }));
+            }
+          }}
+          aria-invalid={Boolean(errors.title)}
+          aria-describedby={errors.title ? "habit-title-error" : undefined}
         />
+        {errors.title ? (
+          <p id="habit-title-error" className="mt-2 text-xs text-rust">
+            {errors.title}
+          </p>
+        ) : null}
       </div>
       <div>
         <label
@@ -61,21 +93,32 @@ export function HabitForm() {
         <input
           id="habit-review-window"
           type="number"
-          min={1}
+          min={0}
           max={90}
           className="mt-2 w-full rounded-[var(--radius-soft)] border border-border bg-surface px-3 py-2 text-sm text-ink shadow-[var(--shadow-soft)] focus:outline-none focus:ring-2 focus:ring-accent/30"
           value={reviewWindowDays}
-          onChange={(event) =>
+          onChange={(event) => {
             setReviewWindowDays(
               Number.isNaN(Number(event.target.value))
                 ? 7
-                : Math.max(1, Math.min(90, Number(event.target.value)))
-            )
-          }
+                : Math.max(0, Math.min(90, Number(event.target.value)))
+            );
+            if (errors.reviewWindowDays) {
+              setErrors((current) => ({ ...current, reviewWindowDays: undefined }));
+            }
+          }}
+          aria-invalid={Boolean(errors.reviewWindowDays)}
+          aria-describedby={errors.reviewWindowDays ? "habit-review-window-error" : undefined}
         />
-        <p className="mt-2 text-xs text-ink-subtle">
-          Choose how many days to measure success for this habit.
-        </p>
+        {errors.reviewWindowDays ? (
+          <p id="habit-review-window-error" className="mt-2 text-xs text-rust">
+            {errors.reviewWindowDays}
+          </p>
+        ) : (
+          <p className="mt-2 text-xs text-ink-subtle">
+            Choose how many days to measure success for this habit.
+          </p>
+        )}
       </div>
       <Button type="submit" className="w-full">
         Add habit

@@ -70,6 +70,7 @@ export function Dashboard() {
   const { habits, userId, userProfile } = useHabits();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
   const todayKey = getTodayKey();
   const todayEntries = habits.filter((habit) => habit.entries[todayKey]);
   const todaySuccess = habits.filter(
@@ -131,14 +132,6 @@ export function Dashboard() {
         </div>
 
         <div className={cn("space-y-2", sidebarCollapsed && "lg:text-center")}>
-          <p
-            className={cn(
-              "text-xs font-semibold uppercase tracking-[0.4em] text-ink-subtle",
-              sidebarCollapsed && "lg:hidden"
-            )}
-          >
-            Habit ledger
-          </p>
           <h1 className="text-3xl font-[var(--font-display)] font-semibold text-ink">
             {sidebarCollapsed ? "HL" : "Daily focus"}
           </h1>
@@ -259,9 +252,6 @@ export function Dashboard() {
                     <ButtonLink href="/profile" variant="ghost" size="sm">
                       Profile
                     </ButtonLink>
-                    <ButtonLink href="/logout" variant="ghost" size="sm">
-                      Logout
-                    </ButtonLink>
                   </>
                 )}
               </div>
@@ -280,9 +270,6 @@ export function Dashboard() {
                 <>
                   <ButtonLink href="/profile" variant="ghost" size="sm">
                     Profile
-                  </ButtonLink>
-                  <ButtonLink href="/logout" variant="ghost" size="sm">
-                    Logout
                   </ButtonLink>
                 </>
               )}
@@ -319,7 +306,14 @@ export function Dashboard() {
                   </p>
                 </div>
                 <div className="mt-4">
-                  <HabitForm />
+                  <Button
+                    type="button"
+                    variant="primary"
+                    size="sm"
+                    onClick={() => setCreateOpen(true)}
+                  >
+                    New habit
+                  </Button>
                 </div>
               </Card>
 
@@ -370,6 +364,49 @@ export function Dashboard() {
           </section>
         </div>
       </main>
+
+      {createOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setCreateOpen(false)}
+            aria-hidden="true"
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Create habit"
+            className="relative w-full max-w-lg rounded-[var(--radius-card)] border border-border bg-surface/95 p-6 shadow-[var(--shadow-card)]"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-ink-subtle">
+                  Create habit
+                </p>
+                <h2 className="mt-2 text-xl font-[var(--font-display)] font-semibold text-ink">
+                  Add a new daily habit.
+                </h2>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                aria-label="Close"
+                onClick={() => setCreateOpen(false)}
+              >
+                <IconClose className="h-4 w-4" aria-hidden="true" />
+              </Button>
+            </div>
+            <p className="mt-2 text-sm text-ink-muted">
+              Keep the name simple and measurable so check-ins stay fast.
+            </p>
+            <div className="mt-4">
+              <HabitForm onSubmitted={() => setCreateOpen(false)} />
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

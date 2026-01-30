@@ -21,6 +21,16 @@ type HabitDetailProps = {
   habitId: string;
 };
 
+type IconProps = React.SVGProps<SVGSVGElement>;
+
+function IconArrowLeft(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+      <path d="M15 6l-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function HabitDetail({ habitId }: HabitDetailProps) {
   const { habits, removeHabit } = useHabits();
   const habit = habits.find((item) => item.id === habitId);
@@ -55,7 +65,8 @@ export function HabitDetail({ habitId }: HabitDetailProps) {
       <div className="mx-auto flex max-w-5xl flex-col gap-8">
         <header className="space-y-3">
           <ButtonLink href="/" variant="ghost" size="sm">
-            Back
+            <IconArrowLeft className="h-4 w-4" aria-hidden="true" />
+            <span className="sr-only">Back</span>
           </ButtonLink>
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-4xl font-[var(--font-display)] font-semibold text-ink">

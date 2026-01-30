@@ -60,9 +60,7 @@ function buildHabitsWithEntries(
     .map((habit) => ({
       ...habit,
       reviewWindowDays:
-        habit.reviewWindowDays && habit.reviewWindowDays > 0
-          ? habit.reviewWindowDays
-          : 7,
+        habit.reviewWindowDays ?? 7,
     }))
     .filter((habit) => {
       if (activeUserId && habit.userId && habit.userId !== activeUserId) {

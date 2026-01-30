@@ -89,7 +89,7 @@ export function createHabit(
     userId: null,
     title: title.trim(),
     kind,
-    reviewWindowDays: Math.max(1, Math.min(90, reviewWindowDays)),
+    reviewWindowDays: Math.max(0, Math.min(90, reviewWindowDays)),
     createdAt: timestamp,
     updatedAt: timestamp,
     deletedAt: null,

@@ -275,13 +275,16 @@ export function MonthlyTrends() {
 
       <div className="grid grid-cols-7 gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-subtle">
         {WEEKDAYS.map((label) => (
-          <div key={label} className="text-center">
+          <div
+            key={label}
+            className="text-center max-[450px]:text-[10px] max-[450px]:tracking-[0.15em]"
+          >
             {label}
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-7 gap-2">
+      <div className="grid grid-cols-7 gap-2 max-[450px]:gap-1.5">
         {daySummaries.map(({ day, summary }) => {
           const rate = summary.rate;
           const isToday = day.key === todayKey;
@@ -297,7 +300,7 @@ export function MonthlyTrends() {
               <div
                 key={day.key}
                 className={cn(
-                  "flex h-12 items-start justify-between rounded-[var(--radius-soft)] border border-border/70 p-2 text-[11px] font-semibold text-ink",
+                  "flex h-12 items-start justify-between rounded-[var(--radius-soft)] border border-border/70 p-2 text-[11px] font-semibold text-ink max-[450px]:h-10 max-[450px]:p-1.5 max-[450px]:text-[10px]",
                   !day.inMonth && "text-ink-subtle/70",
                   isToday && "ring-2 ring-accent/40"
                 )}
@@ -319,26 +322,26 @@ export function MonthlyTrends() {
             <div
               key={day.key}
               className={cn(
-                "flex h-20 flex-col justify-between rounded-[var(--radius-soft)] border border-border/70 bg-surface/80 p-2 text-xs text-ink-muted",
+                "flex h-20 flex-col justify-between rounded-[var(--radius-soft)] border border-border/70 bg-surface/80 p-2 text-xs text-ink-muted max-[450px]:h-16 max-[450px]:p-1.5 max-[450px]:text-[10px]",
                 !day.inMonth && "bg-surface-3/60 text-ink-subtle/70",
                 isToday && "border-accent/70 bg-surface"
               )}
               title={`${label}: ${summary.total ? `${summary.successes}/${summary.total} success` : "No data"}`}
             >
-              <div className="flex items-center justify-between text-[11px] font-semibold text-ink">
+              <div className="flex items-center justify-between text-[11px] font-semibold text-ink max-[450px]:text-[10px]">
                 <span className={cn(!day.inMonth && "text-ink-subtle")}>{day.label}</span>
                 {summary.total ? (
-                  <span className="text-[10px] text-ink-subtle">
+                  <span className="text-[10px] text-ink-subtle max-[450px]:text-[9px]">
                     {summary.successes}/{summary.total}
                   </span>
                 ) : null}
               </div>
-              <div className="mt-2 h-1.5 w-full rounded-full bg-surface-3">
+              <div className="mt-2 h-1.5 w-full rounded-full bg-surface-3 max-[450px]:mt-1.5">
                 {summary.total ? (
                   <div className={cn("h-full rounded-full", tone)} style={{ width: `${rate}%` }} />
                 ) : null}
               </div>
-              <div className="mt-1 text-[10px] uppercase tracking-[0.2em] text-ink-subtle">
+              <div className="mt-1 text-[10px] uppercase tracking-[0.2em] text-ink-subtle max-[450px]:text-[9px] max-[450px]:tracking-[0.15em]">
                 {summary.total ? `${rate}%` : "No data"}
               </div>
             </div>
