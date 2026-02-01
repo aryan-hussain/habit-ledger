@@ -11,7 +11,7 @@ export function WeekStrip({ habit, days = 7 }: WeekStripProps) {
   const keys = getLastNDays(days);
 
   return (
-    <div className="mt-3 flex items-center gap-1.5">
+    <div className="mt-2 flex items-center gap-1 sm:mt-3 sm:gap-1.5">
       {keys.map((key) => {
         const entry = habit.entries[key];
         const status = entry?.status;

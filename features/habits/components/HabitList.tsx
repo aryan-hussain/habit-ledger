@@ -10,14 +10,14 @@ type HabitListProps = {
 
 export function HabitList({ title, description, habits, emptyCopy }: HabitListProps) {
   return (
-    <section className="space-y-4">
+    <section className="space-y-3 sm:space-y-4">
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-ink-subtle">
           {title}
         </p>
-        <h2 className="mt-2 text-2xl font-semibold text-ink">{description}</h2>
+        <h2 className="mt-2 text-xl font-semibold text-ink sm:text-2xl">{description}</h2>
       </div>
-      <div className="space-y-3">
+      <div className="space-y-3 sm:space-y-3">
         {habits.length ? (
           habits.map((habit) => <HabitCard key={habit.id} habit={habit} />)
         ) : (

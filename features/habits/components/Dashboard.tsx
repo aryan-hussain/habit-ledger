@@ -6,6 +6,7 @@ import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
 import { StatTile } from "@/components/ui/StatTile";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { Logo } from "@/components/ui/Logo";
 import { cn } from "@/lib/cn";
 import { useHabits } from "../store";
 import { formatDisplayDate, getTodayKey } from "../utils";
@@ -101,7 +102,7 @@ export function Dashboard() {
     <div className="relative min-h-screen lg:flex">
       <div
         className={cn(
-          "fixed inset-0 z-30 bg-black/30 transition lg:hidden",
+          "fixed inset-0 z-30 bg-black/30 backdrop-blur-sm transition lg:hidden",
           sidebarOpen ? "opacity-100" : "pointer-events-none opacity-0"
         )}
         onClick={() => setSidebarOpen(false)}
@@ -111,7 +112,7 @@ export function Dashboard() {
       <aside
         id="sidebar"
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex w-72 flex-col gap-6 overflow-y-auto border-b border-border/70 bg-surface/95 px-6 py-8 shadow-[var(--shadow-card)] transition-transform duration-300 lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 lg:border-b-0 lg:border-r lg:bg-surface/85 lg:shadow-none lg:transition-[width]",
+          "fixed inset-y-0 left-0 z-40 flex w-72 flex-col gap-6 overflow-y-auto border-b border-border/70 bg-surface/80 backdrop-blur-xl px-6 py-8 shadow-[var(--shadow-card)] transition-transform duration-300 lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 lg:border-b-0 lg:border-r lg:bg-surface/85 lg:shadow-none lg:transition-[width]",
           sidebarOpen ? "translate-x-0" : "-translate-x-full",
           sidebarCollapsed ? "lg:w-20 lg:items-center lg:px-3" : "lg:w-80"
         )}
@@ -131,9 +132,15 @@ export function Dashboard() {
           </Button>
         </div>
 
-        <div className={cn("space-y-2", sidebarCollapsed && "lg:text-center")}>
-          <h1 className="text-3xl font-[var(--font-display)] font-semibold text-ink">
-            {sidebarCollapsed ? "HL" : "Daily focus"}
+        <div className={cn("flex items-center gap-3", sidebarCollapsed && "lg:justify-center")}>
+          <Logo className="h-8 w-8 shrink-0" />
+          <h1
+            className={cn(
+              "text-xl font-[var(--font-display)] font-semibold text-ink",
+              sidebarCollapsed && "lg:hidden"
+            )}
+          >
+            Habit Ledger
           </h1>
         </div>
 
@@ -203,18 +210,20 @@ export function Dashboard() {
           </div>
         ) : null}
 
-        <Button
-          size="sm"
-          variant="secondary"
-          type="button"
-          className={cn("hidden lg:flex", sidebarCollapsed && "lg:w-full lg:px-2")}
-          onClick={() => setSidebarCollapsed((current) => !current)}
-        >
-          {sidebarCollapsed ? "Expand" : "Collapse"}
-        </Button>
+        <div className="hidden lg:block">
+          <Button
+            size="sm"
+            variant="secondary"
+            type="button"
+            className={cn("w-full", sidebarCollapsed && "px-2")}
+            onClick={() => setSidebarCollapsed((current) => !current)}
+          >
+            {sidebarCollapsed ? "Expand" : "Collapse"}
+          </Button>
+        </div>
       </aside>
 
-      <main className="flex-1 px-6 py-10 sm:px-10 lg:px-12">
+      <main className="flex-1 px-3 py-10 sm:px-10 lg:px-12">
         <div className="mx-auto max-w-6xl space-y-8">
           <header className="space-y-4 motion-rise">
             <div className="flex items-center justify-between lg:hidden">
@@ -283,7 +292,7 @@ export function Dashboard() {
           </header>
 
           <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] motion-rise motion-rise-delay-1">
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 grid-cols-3">
               <StatTile label="Today" value={formatDisplayDate()} hint="Local time" />
               <StatTile label="Habits" value={`${habits.length}`} hint="Active tracking" />
               <StatTile
@@ -314,22 +323,6 @@ export function Dashboard() {
                   >
                     New habit
                   </Button>
-                </div>
-              </Card>
-
-              <Card>
-                <div className="space-y-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-ink-subtle">
-                    Daily rules
-                  </p>
-                  <h3 className="text-xl font-[var(--font-display)] font-semibold text-ink">
-                    Stay consistent.
-                  </h3>
-                  <ul className="space-y-2 text-sm text-ink-muted">
-                    <li>Check in at the same time each day.</li>
-                    <li>Be honest about misses and slips.</li>
-                    <li>Keep habits small enough to finish.</li>
-                  </ul>
                 </div>
               </Card>
             </div>
@@ -368,7 +361,7 @@ export function Dashboard() {
       {createOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6">
           <div
-            className="absolute inset-0 bg-black/40"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => setCreateOpen(false)}
             aria-hidden="true"
           />
@@ -376,7 +369,7 @@ export function Dashboard() {
             role="dialog"
             aria-modal="true"
             aria-label="Create habit"
-            className="relative w-full max-w-lg rounded-[var(--radius-card)] border border-border bg-surface/95 p-6 shadow-[var(--shadow-card)]"
+            className="relative w-full max-w-lg rounded-[var(--radius-card)] border border-border bg-surface/80 backdrop-blur-xl p-6 shadow-[var(--shadow-card)]"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-center justify-between gap-4">
