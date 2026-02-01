@@ -49,6 +49,22 @@ function IconUndo(props: IconProps) {
   );
 }
 
+function IconChevronLeft(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+      <path d="M15 6l-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IconChevronRight(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+      <path d="M9 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 type HabitCalendarProps = {
   habit: HabitWithEntries;
 };
@@ -99,13 +115,13 @@ export function HabitCalendar({ habit }: HabitCalendarProps) {
   }, [clampToRange]);
 
   return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="space-y-2 sm:space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-ink-subtle">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.26em] text-ink-subtle sm:text-[11px] sm:tracking-[0.3em]">
             Calendar check-ins
           </p>
-          <h4 className="mt-2 text-lg font-[var(--font-display)] font-semibold text-ink">
+          <h4 className="mt-1 text-base font-[var(--font-display)] font-semibold text-ink sm:mt-2 sm:text-lg">
             {formatMonthLabel(monthDate)}
           </h4>
         </div>
@@ -114,14 +130,18 @@ export function HabitCalendar({ habit }: HabitCalendarProps) {
             size="sm"
             variant="ghost"
             type="button"
+            className="h-8 px-2 text-[11px] sm:h-9 sm:px-3 sm:text-xs"
             onClick={() => setMonthDate((current) => addMonths(current, -1))}
+            aria-label="Previous month"
           >
-            Prev
+            <IconChevronLeft className="h-4 w-4" aria-hidden="true" />
+            <span className="sr-only">Previous month</span>
           </Button>
           <Button
             size="sm"
             variant="ghost"
             type="button"
+            className="h-8 px-2 text-[11px] sm:h-9 sm:px-3 sm:text-xs"
             onClick={() => {
               const today = new Date();
               setMonthDate(today);
@@ -134,14 +154,17 @@ export function HabitCalendar({ habit }: HabitCalendarProps) {
             size="sm"
             variant="ghost"
             type="button"
+            className="h-8 px-2 text-[11px] sm:h-9 sm:px-3 sm:text-xs"
             onClick={() => setMonthDate((current) => addMonths(current, 1))}
+            aria-label="Next month"
           >
-            Next
+            <IconChevronRight className="h-4 w-4" aria-hidden="true" />
+            <span className="sr-only">Next month</span>
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-subtle">
+      <div className="grid grid-cols-7 gap-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-subtle sm:gap-2 sm:text-[11px] sm:tracking-[0.2em]">
         {WEEKDAYS.map((label) => (
           <div key={label} className="text-center">
             {label}
@@ -165,12 +188,12 @@ export function HabitCalendar({ habit }: HabitCalendarProps) {
               type="button"
               onClick={() => isSelectable && setSelectedKey(day.key)}
               className={cn(
-                "flex h-12 flex-col items-center justify-center rounded-[var(--radius-soft)] border border-border/70 bg-surface/80 text-xs font-semibold text-ink transition hover:border-accent/60",
+                "flex h-12 flex-col items-center justify-center rounded-[var(--radius-soft)] border border-border/70 bg-surface/80 text-[10px] font-semibold text-ink transition hover:border-accent/60 sm:h-12 sm:text-xs",
                 !day.inMonth && "bg-surface-3/60 text-ink-subtle/70",
                 isBeforeStart && "cursor-not-allowed bg-surface-3/40 text-ink-subtle/60",
-                isSelected && "border-accent bg-surface",
                 isToday && "ring-2 ring-accent/30",
-                isReviewCompletionDay && "border-olive/70 bg-surface ring-2 ring-olive/30"
+                isReviewCompletionDay && "border-olive/70 bg-surface ring-2 ring-olive/30",
+                isSelected && "border-accent bg-surface ring-2 ring-accent/60"
               )}
               title={
                 isSelectable
@@ -183,7 +206,7 @@ export function HabitCalendar({ habit }: HabitCalendarProps) {
               <span>{day.label}</span>
               <span
                 className={cn(
-                  "mt-1 h-1.5 w-6 rounded-full",
+                  "mt-0.5 h-1 w-5 rounded-full sm:mt-1 sm:h-1.5 sm:w-6",
                   status === "success"
                     ? "bg-olive"
                     : status === "fail"
@@ -196,15 +219,16 @@ export function HabitCalendar({ habit }: HabitCalendarProps) {
         })}
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 rounded-[var(--radius-soft)] border border-dashed border-border bg-surface-2 px-4 py-3 text-sm text-ink-muted">
-        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-ink-subtle">
+      <div className="flex flex-wrap items-center gap-2 rounded-[var(--radius-soft)] border border-dashed border-border bg-surface-2 px-3 py-2 text-xs text-ink-muted sm:gap-3 sm:px-4 sm:py-3 sm:text-sm">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-subtle sm:text-xs sm:tracking-[0.2em]">
           {selectedLabel}
         </span>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5 sm:gap-2">
           <Button
             size="sm"
             variant={selectedEntry?.status === "success" ? "primary" : "secondary"}
             type="button"
+            className="h-8 px-2 sm:h-9 sm:px-3"
             onClick={() => void setHabitStatus(habit.id, selectedKey, "success")}
             aria-label={`Mark as ${labels.success}`}
             title={`Mark as ${labels.success}`}
@@ -215,6 +239,7 @@ export function HabitCalendar({ habit }: HabitCalendarProps) {
             size="sm"
             variant={selectedEntry?.status === "fail" ? "primary" : "secondary"}
             type="button"
+            className="h-8 px-2 sm:h-9 sm:px-3"
             onClick={() => void setHabitStatus(habit.id, selectedKey, "fail")}
             aria-label={`Mark as ${labels.fail}`}
             title={`Mark as ${labels.fail}`}
@@ -225,6 +250,7 @@ export function HabitCalendar({ habit }: HabitCalendarProps) {
             size="sm"
             variant="ghost"
             type="button"
+            className="h-8 px-2 sm:h-9 sm:px-3"
             onClick={() => void clearHabitStatus(habit.id, selectedKey)}
             aria-label="Unmark day"
             title="Unmark day"

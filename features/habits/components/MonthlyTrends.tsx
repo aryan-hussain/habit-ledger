@@ -49,6 +49,24 @@ function getHeatColor(rate: number) {
   return `rgb(${r}, ${g}, ${b})`;
 }
 
+type IconProps = React.SVGProps<SVGSVGElement>;
+
+function IconChevronLeft(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+      <path d="M15 6l-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IconChevronRight(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+      <path d="M9 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function MonthlyTrends() {
   const { habits } = useHabits();
   const [monthDate, setMonthDate] = useState(() => new Date());
@@ -56,6 +74,7 @@ export function MonthlyTrends() {
   const [habitFilter, setHabitFilter] = useState("all");
   const [viewMode, setViewMode] = useState<ViewMode>("cards");
   const todayKey = getTodayKey();
+  const [selectedKey, setSelectedKey] = useState(() => todayKey);
   const typeFilterDisabled = habitFilter !== "all";
 
   const filteredHabits = useMemo(() => {
@@ -143,8 +162,10 @@ export function MonthlyTrends() {
             variant="ghost"
             type="button"
             onClick={() => setMonthDate((current) => addMonths(current, -1))}
+            aria-label="Previous month"
           >
-            Prev
+            <IconChevronLeft className="h-4 w-4" aria-hidden="true" />
+            <span className="sr-only">Previous month</span>
           </Button>
           <Button
             size="sm"
@@ -159,8 +180,10 @@ export function MonthlyTrends() {
             variant="ghost"
             type="button"
             onClick={() => setMonthDate((current) => addMonths(current, 1))}
+            aria-label="Next month"
           >
-            Next
+            <IconChevronRight className="h-4 w-4" aria-hidden="true" />
+            <span className="sr-only">Next month</span>
           </Button>
         </div>
       </div>
@@ -288,6 +311,7 @@ export function MonthlyTrends() {
         {daySummaries.map(({ day, summary }) => {
           const rate = summary.rate;
           const isToday = day.key === todayKey;
+          const isSelected = day.key === selectedKey;
           const tone = summary.total ? getRateTone(rate) : "bg-surface-3";
           const heatColor = summary.total ? getHeatColor(rate) : "var(--color-surface-3)";
           const label = new Intl.DateTimeFormat("en-US", {
@@ -297,12 +321,16 @@ export function MonthlyTrends() {
 
           if (viewMode === "heatmap") {
             return (
-              <div
+              <button
                 key={day.key}
+                type="button"
+                onClick={() => setSelectedKey(day.key)}
+                aria-pressed={isSelected}
                 className={cn(
-                  "flex h-12 items-start justify-between rounded-[var(--radius-soft)] border border-border/70 p-2 text-[11px] font-semibold text-ink max-[450px]:h-10 max-[450px]:p-1.5 max-[450px]:text-[10px]",
+                  "flex h-12 w-full items-start justify-between rounded-[var(--radius-soft)] border border-border/70 p-2 text-left text-[11px] font-semibold text-ink max-[450px]:h-10 max-[450px]:p-1.5 max-[450px]:text-[10px]",
                   !day.inMonth && "text-ink-subtle/70",
-                  isToday && "ring-2 ring-accent/40"
+                  isToday && "ring-2 ring-accent/40",
+                  isSelected && "border-accent ring-2 ring-accent/60"
                 )}
                 style={{
                   backgroundColor: heatColor,
@@ -314,17 +342,21 @@ export function MonthlyTrends() {
                 {summary.total ? (
                   <span className="text-[10px] text-ink-subtle">{rate}%</span>
                 ) : null}
-              </div>
+              </button>
             );
           }
 
           return (
-            <div
+            <button
               key={day.key}
+              type="button"
+              onClick={() => setSelectedKey(day.key)}
+              aria-pressed={isSelected}
               className={cn(
-                "flex h-20 flex-col justify-between rounded-[var(--radius-soft)] border border-border/70 bg-surface/80 p-2 text-xs text-ink-muted max-[450px]:h-16 max-[450px]:p-1.5 max-[450px]:text-[10px]",
+                "flex h-20 w-full flex-col justify-between rounded-[var(--radius-soft)] border border-border/70 bg-surface/80 p-2 text-left text-xs text-ink-muted max-[450px]:h-16 max-[450px]:p-1.5 max-[450px]:text-[10px]",
                 !day.inMonth && "bg-surface-3/60 text-ink-subtle/70",
-                isToday && "border-accent/70 bg-surface"
+                isToday && "border-accent/70 bg-surface",
+                isSelected && "border-accent ring-2 ring-accent/40"
               )}
               title={`${label}: ${summary.total ? `${summary.successes}/${summary.total} success` : "No data"}`}
             >
@@ -344,7 +376,7 @@ export function MonthlyTrends() {
               <div className="mt-1 text-[10px] uppercase tracking-[0.2em] text-ink-subtle max-[450px]:text-[9px] max-[450px]:tracking-[0.15em]">
                 {summary.total ? `${rate}%` : "No data"}
               </div>
-            </div>
+            </button>
           );
         })}
       </div>
