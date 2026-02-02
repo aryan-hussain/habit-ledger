@@ -52,7 +52,7 @@ function mapEntryToRow(entry: HabitEntry, userId: string): EntryRow {
     user_id: entry.userId ?? userId,
     entry_date: entry.date,
     status: entry.status,
-    sub_activity_statuses: entry.subActivityStatuses ?? null,
+    sub_activity_statuses: entry.subActivityStatuses ?? {},
     created_at: entry.createdAt,
     updated_at: entry.updatedAt,
     deleted_at: entry.deletedAt ?? null,
