@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { PageShell } from "@/components/ui/PageShell";
 import { TextField } from "@/components/ui/TextField";
+import { PasswordField } from "@/components/ui/PasswordField";
 import { supabase } from "@/lib/supabaseClient";
 
 export default function SignInPage() {
@@ -48,15 +49,20 @@ export default function SignInPage() {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
         />
-        <TextField
+        <PasswordField
           label="Password"
-          type="password"
           name="password"
           autoComplete="current-password"
           required
           value={password}
           onChange={(event) => setPassword(event.target.value)}
         />
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-ink-subtle">Forgot your password?</span>
+          <ButtonLink href="/forgot-password" variant="ghost" size="sm">
+            Reset
+          </ButtonLink>
+        </div>
         {error ? <p className="text-sm text-rust">{error}</p> : null}
         <div className="flex flex-wrap items-center gap-3">
           <Button type="submit" disabled={loading}>

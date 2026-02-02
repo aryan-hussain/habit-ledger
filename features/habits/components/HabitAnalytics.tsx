@@ -16,6 +16,7 @@ import {
   addDays,
   calculateStreak,
   getDateKey,
+  getEntryStatus,
   getLastNDays,
   parseDateKey,
 } from "../utils";
@@ -53,9 +54,16 @@ function getBestStreak(successDates: Set<string>) {
 
 export function HabitAnalytics({ habit }: HabitAnalyticsProps) {
   const entries = Object.values(habit.entries);
-  const totalEntries = entries.length;
-  const successEntries = entries.filter((entry) => entry.status === "success");
-  const failEntries = entries.filter((entry) => entry.status === "fail");
+  const entryStatuses = entries
+    .map((entry) => ({ entry, status: getEntryStatus(habit, entry.date) }))
+    .filter((item) => item.status);
+  const totalEntries = entryStatuses.length;
+  const successEntries = entryStatuses
+    .filter((item) => item.status === "success")
+    .map((item) => item.entry);
+  const failEntries = entryStatuses
+    .filter((item) => item.status === "fail")
+    .map((item) => item.entry);
   const overallRate = totalEntries
     ? Math.round((successEntries.length / totalEntries) * 100)
     : 0;
@@ -65,9 +73,9 @@ export function HabitAnalytics({ habit }: HabitAnalyticsProps) {
   const bestStreak = getBestStreak(successDates);
 
   const last30Keys = getLastNDays(30);
-  const last30Entries = last30Keys.filter((key) => habit.entries[key]);
+  const last30Entries = last30Keys.filter((key) => getEntryStatus(habit, key));
   const last30Success = last30Keys.filter(
-    (key) => habit.entries[key]?.status === "success"
+    (key) => getEntryStatus(habit, key) === "success"
   ).length;
   const last30Rate = last30Entries.length
     ? Math.round((last30Success / last30Entries.length) * 100)
@@ -83,10 +91,12 @@ export function HabitAnalytics({ habit }: HabitAnalyticsProps) {
   const chartData = (() => {
     const today = new Date();
     const anchor = startOfWeek(today, 1);
-    const entryDates = entries.map((entry) => ({
-      status: entry.status,
-      time: parseDateKey(entry.date).getTime(),
-    }));
+    const entryDates = entries
+      .map((entry) => ({
+        status: getEntryStatus(habit, entry.date),
+        time: parseDateKey(entry.date).getTime(),
+      }))
+      .filter((item) => item.status);
     const weeks = 12;
     const data = [];
     for (let index = weeks - 1; index >= 0; index -= 1) {

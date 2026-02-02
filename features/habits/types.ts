@@ -2,12 +2,18 @@ export type HabitKind = "good" | "bad";
 
 export type HabitStatus = "success" | "fail";
 
+export type SubActivity = {
+  id: string;
+  label: string;
+};
+
 export type Habit = {
   id: string;
   userId?: string | null;
   title: string;
   kind: HabitKind;
   reviewWindowDays: number;
+  subActivities?: SubActivity[];
   createdAt: string;
   updatedAt: string;
   deletedAt?: string | null;
@@ -19,6 +25,7 @@ export type HabitEntry = {
   userId?: string | null;
   date: string;
   status: HabitStatus;
+  subActivityStatuses?: Record<string, boolean>;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string | null;

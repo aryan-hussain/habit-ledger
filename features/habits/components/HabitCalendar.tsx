@@ -10,6 +10,7 @@ import {
   formatMonthLabel,
   getCalendarDays,
   getDateKey,
+  getEntryStatus,
   getTodayKey,
   getStatusLabels,
   parseDateKey,
@@ -70,12 +71,14 @@ type HabitCalendarProps = {
 };
 
 export function HabitCalendar({ habit }: HabitCalendarProps) {
-  const { setHabitStatus, clearHabitStatus } = useHabits();
+  const { setHabitStatus, clearHabitStatus, setHabitSubActivityStatus } = useHabits();
   const [monthDate, setMonthDate] = useState(() => new Date());
   const todayKey = getTodayKey();
   const [selectedKey, setSelectedKey] = useState(todayKey);
   const labels = getStatusLabels(habit.kind);
   const reviewWindowDays = habit.reviewWindowDays || 7;
+  const subActivities = habit.subActivities ?? [];
+  const isComposite = subActivities.length > 0;
   const habitStart = useMemo(
     () => parseDateKey(getDateKey(new Date(habit.createdAt))),
     [habit.createdAt]
@@ -89,6 +92,14 @@ export function HabitCalendar({ habit }: HabitCalendarProps) {
 
   const days = useMemo(() => getCalendarDays(monthDate, 1), [monthDate]);
   const selectedEntry = habit.entries[selectedKey];
+  const selectedStatus = getEntryStatus(habit, selectedKey);
+  const selectedSubStatuses = selectedEntry?.subActivityStatuses ?? {};
+  const completedSubCount = isComposite
+    ? subActivities.reduce(
+        (count, activity) => count + (selectedSubStatuses[activity.id] ? 1 : 0),
+        0
+      )
+    : 0;
   const selectedLabel = useMemo(() => {
     const [year, month, day] = selectedKey.split("-").map(Number);
     const selectedDate = new Date(year, (month ?? 1) - 1, day ?? 1);
@@ -172,10 +183,9 @@ export function HabitCalendar({ habit }: HabitCalendarProps) {
         ))}
       </div>
 
-      <div className="grid grid-cols-7 gap-2">
+      <div className="grid grid-cols-7 gap-1 sm:gap-2">
         {days.map((day) => {
-          const entry = habit.entries[day.key];
-          const status = entry?.status;
+          const status = getEntryStatus(habit, day.key);
           const isToday = day.key === todayKey;
           const isSelected = day.key === selectedKey;
           const isBeforeStart = day.date < habitStart;
@@ -188,7 +198,7 @@ export function HabitCalendar({ habit }: HabitCalendarProps) {
               type="button"
               onClick={() => isSelectable && setSelectedKey(day.key)}
               className={cn(
-                "flex h-12 flex-col items-center justify-center rounded-[var(--radius-soft)] border border-border/70 bg-surface/80 text-[10px] font-semibold text-ink transition hover:border-accent/60 sm:h-12 sm:text-xs",
+                "flex h-10 flex-col items-center justify-center rounded-[var(--radius-soft)] border border-border/70 bg-surface/80 text-[10px] font-semibold text-ink transition hover:border-accent/60 sm:h-12 sm:text-xs",
                 !day.inMonth && "bg-surface-3/60 text-ink-subtle/70",
                 isBeforeStart && "cursor-not-allowed bg-surface-3/40 text-ink-subtle/60",
                 isToday && "ring-2 ring-accent/30",
@@ -197,7 +207,7 @@ export function HabitCalendar({ habit }: HabitCalendarProps) {
               )}
               title={
                 isSelectable
-                  ? `${day.key}: ${status ?? "No entry"}`
+                  ? `${day.key}: ${status ? labels[status] : "No entry"}`
                   : `Unavailable - before ${habitStartKey}`
               }
               aria-pressed={isSelected}
@@ -219,45 +229,106 @@ export function HabitCalendar({ habit }: HabitCalendarProps) {
         })}
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 rounded-[var(--radius-soft)] border border-dashed border-border bg-surface-2 px-3 py-2 text-xs text-ink-muted sm:gap-3 sm:px-4 sm:py-3 sm:text-sm">
-        <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-subtle sm:text-xs sm:tracking-[0.2em]">
-          {selectedLabel}
-        </span>
-        <div className="flex flex-wrap gap-1.5 sm:gap-2">
-          <Button
-            size="sm"
-            variant={selectedEntry?.status === "success" ? "primary" : "secondary"}
-            type="button"
-            className="h-8 px-2 sm:h-9 sm:px-3"
-            onClick={() => void setHabitStatus(habit.id, selectedKey, "success")}
-            aria-label={`Mark as ${labels.success}`}
-            title={`Mark as ${labels.success}`}
-          >
-            <IconCheck className="h-4 w-4" aria-hidden="true" />
-          </Button>
-          <Button
-            size="sm"
-            variant={selectedEntry?.status === "fail" ? "primary" : "secondary"}
-            type="button"
-            className="h-8 px-2 sm:h-9 sm:px-3"
-            onClick={() => void setHabitStatus(habit.id, selectedKey, "fail")}
-            aria-label={`Mark as ${labels.fail}`}
-            title={`Mark as ${labels.fail}`}
-          >
-            <IconX className="h-4 w-4" aria-hidden="true" />
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            type="button"
-            className="h-8 px-2 sm:h-9 sm:px-3"
-            onClick={() => void clearHabitStatus(habit.id, selectedKey)}
-            aria-label="Unmark day"
-            title="Unmark day"
-          >
-            <IconUndo className="h-4 w-4" aria-hidden="true" />
-          </Button>
+      <div className="rounded-[var(--radius-soft)] border border-dashed border-border bg-surface-2 px-3 py-2 text-xs text-ink-muted sm:px-4 sm:py-3 sm:text-sm">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-subtle sm:text-xs sm:tracking-[0.2em]">
+            {selectedLabel}
+          </span>
+          {isComposite ? (
+            <span className="text-[10px] uppercase tracking-[0.16em] text-ink-subtle sm:text-xs sm:tracking-[0.2em]">
+              {completedSubCount}/{subActivities.length} done
+            </span>
+          ) : null}
         </div>
+        {isComposite ? (
+          <>
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              {subActivities.map((activity) => {
+                const isDone = Boolean(selectedSubStatuses[activity.id]);
+                return (
+                  <button
+                    key={activity.id}
+                    type="button"
+                    onClick={() =>
+                      void setHabitSubActivityStatus(
+                        habit.id,
+                        selectedKey,
+                        activity.id,
+                        !isDone
+                      )
+                    }
+                    aria-pressed={isDone}
+                    className={cn(
+                      "flex items-center gap-2 rounded-[var(--radius-soft)] border px-2 py-1 text-xs font-semibold transition",
+                      isDone
+                        ? "border-olive/60 bg-olive/10 text-olive"
+                        : "border-border bg-surface/80 text-ink"
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "flex h-5 w-5 items-center justify-center rounded-full",
+                        isDone ? "bg-olive text-white" : "bg-surface-3 text-ink-subtle"
+                      )}
+                    >
+                      <IconCheck className="h-3 w-3" aria-hidden="true" />
+                    </span>
+                    <span className="truncate">{activity.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-2 flex">
+              <Button
+                size="sm"
+                variant="ghost"
+                type="button"
+                className="h-8 px-2 sm:h-9 sm:px-3"
+                onClick={() => void clearHabitStatus(habit.id, selectedKey)}
+                aria-label="Clear day"
+                title="Clear day"
+              >
+                <IconUndo className="h-4 w-4" aria-hidden="true" />
+              </Button>
+            </div>
+          </>
+        ) : (
+          <div className="mt-2 flex flex-wrap gap-1.5 sm:gap-2">
+            <Button
+              size="sm"
+              variant={selectedStatus === "success" ? "primary" : "secondary"}
+              type="button"
+              className="h-8 px-2 sm:h-9 sm:px-3"
+              onClick={() => void setHabitStatus(habit.id, selectedKey, "success")}
+              aria-label={`Mark as ${labels.success}`}
+              title={`Mark as ${labels.success}`}
+            >
+              <IconCheck className="h-4 w-4" aria-hidden="true" />
+            </Button>
+            <Button
+              size="sm"
+              variant={selectedStatus === "fail" ? "primary" : "secondary"}
+              type="button"
+              className="h-8 px-2 sm:h-9 sm:px-3"
+              onClick={() => void setHabitStatus(habit.id, selectedKey, "fail")}
+              aria-label={`Mark as ${labels.fail}`}
+              title={`Mark as ${labels.fail}`}
+            >
+              <IconX className="h-4 w-4" aria-hidden="true" />
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              type="button"
+              className="h-8 px-2 sm:h-9 sm:px-3"
+              onClick={() => void clearHabitStatus(habit.id, selectedKey)}
+              aria-label="Unmark day"
+              title="Unmark day"
+            >
+              <IconUndo className="h-4 w-4" aria-hidden="true" />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

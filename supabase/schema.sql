@@ -6,6 +6,7 @@ create table if not exists public.habits (
   title text not null,
   kind text not null check (kind in ('good', 'bad')),
   review_window_days int not null default 7,
+  sub_activities jsonb not null default '[]'::jsonb,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   deleted_at timestamptz
@@ -19,6 +20,7 @@ create table if not exists public.habit_entries (
   user_id uuid not null references auth.users(id) on delete cascade,
   entry_date date not null,
   status text not null check (status in ('success', 'fail')),
+  sub_activity_statuses jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   deleted_at timestamptz,
@@ -29,6 +31,9 @@ create index if not exists habit_entries_user_id_idx on public.habit_entries (us
 
 alter table public.habits enable row level security;
 alter table public.habit_entries enable row level security;
+
+drop policy if exists "Habits are user owned" on public.habits;
+drop policy if exists "Entries are user owned" on public.habit_entries;
 
 create policy "Habits are user owned"
   on public.habits

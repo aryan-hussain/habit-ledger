@@ -21,9 +21,20 @@ type HabitsContextValue = {
   lastSync: string | null;
   userId: string | null;
   userProfile: { id: string; email: string | null; fullName: string | null } | null;
-  addHabit: (title: string, kind: HabitKind, reviewWindowDays: number) => Promise<void>;
+  addHabit: (
+    title: string,
+    kind: HabitKind,
+    reviewWindowDays: number,
+    subActivities?: string[]
+  ) => Promise<void>;
   removeHabit: (id: string) => Promise<void>;
   setHabitStatus: (id: string, date: string, status: HabitStatus) => Promise<void>;
+  setHabitSubActivityStatus: (
+    id: string,
+    date: string,
+    subActivityId: string,
+    isDone: boolean
+  ) => Promise<void>;
   clearHabitStatus: (id: string, date: string) => Promise<void>;
   syncNow: () => Promise<void>;
 };
@@ -59,8 +70,8 @@ function buildHabitsWithEntries(
     .filter((habit) => !isDeleted(habit))
     .map((habit) => ({
       ...habit,
-      reviewWindowDays:
-        habit.reviewWindowDays ?? 7,
+      reviewWindowDays: habit.reviewWindowDays ?? 7,
+      subActivities: habit.subActivities ?? [],
     }))
     .filter((habit) => {
       if (activeUserId && habit.userId && habit.userId !== activeUserId) {
@@ -313,12 +324,17 @@ export function HabitsProvider({ children }: { children: React.ReactNode }) {
   }, [attachLocalUser, syncNow]);
 
   const addHabit = useCallback(
-    async (title: string, kind: HabitKind, reviewWindowDays: number) => {
+    async (
+      title: string,
+      kind: HabitKind,
+      reviewWindowDays: number,
+      subActivities: string[] = []
+    ) => {
       const trimmed = title.trim();
       if (!trimmed) {
         return;
       }
-      const habit = createHabit(trimmed, kind, reviewWindowDays);
+      const habit = createHabit(trimmed, kind, reviewWindowDays, subActivities);
       habit.userId = userId;
       const nextHabits = [habit, ...habitsRef.current];
       const nextEntries = entriesRef.current;
@@ -443,6 +459,7 @@ export function HabitsProvider({ children }: { children: React.ReactNode }) {
         ...existingEntry,
         deletedAt: timestamp,
         updatedAt: timestamp,
+        subActivityStatuses: {},
         userId,
       };
 
@@ -484,6 +501,97 @@ export function HabitsProvider({ children }: { children: React.ReactNode }) {
     [updateState, userId]
   );
 
+  const setHabitSubActivityStatus = useCallback(
+    async (id: string, date: string, subActivityId: string, isDone: boolean) => {
+      const habit = habitsRef.current.find((item) => item.id === id);
+      if (!habit || !habit.subActivities?.length) {
+        return;
+      }
+      const existingEntry = entriesRef.current.find(
+        (entry) => entry.habitId === id && entry.date === date
+      );
+      const entryWasDeleted = existingEntry ? isDeleted(existingEntry) : false;
+      const nextStatuses = {
+        ...(entryWasDeleted ? {} : (existingEntry?.subActivityStatuses ?? {})),
+      };
+      if (isDone) {
+        nextStatuses[subActivityId] = true;
+      } else {
+        delete nextStatuses[subActivityId];
+      }
+
+      const completedCount = habit.subActivities.reduce(
+        (count, activity) => count + (nextStatuses[activity.id] ? 1 : 0),
+        0
+      );
+
+      if (completedCount === 0) {
+        if (existingEntry && !entryWasDeleted) {
+          await clearHabitStatus(id, date);
+        }
+        return;
+      }
+
+      const status: HabitStatus =
+        completedCount >= habit.subActivities.length ? "success" : "fail";
+      const timestamp = new Date().toISOString();
+      const entry = existingEntry
+        ? {
+            ...existingEntry,
+            status,
+            subActivityStatuses: nextStatuses,
+            updatedAt: timestamp,
+            deletedAt: null,
+            userId,
+          }
+        : createHabitEntry(id, date, status, nextStatuses);
+
+      if (!existingEntry) {
+        entry.updatedAt = timestamp;
+      }
+
+      entry.userId = userId;
+
+      const nextEntries = existingEntry
+        ? entriesRef.current.map((current) => (current.id === entry.id ? entry : current))
+        : [entry, ...entriesRef.current];
+
+      const nextHabits = habitsRef.current.map((current) =>
+        current.id === id
+          ? {
+              ...current,
+              updatedAt: timestamp,
+              userId,
+            }
+          : current
+      );
+
+      updateState(nextHabits, nextEntries);
+      await upsertEntries([entry]);
+      const updatedHabit = nextHabits.find((current) => current.id === id);
+      if (updatedHabit) {
+        await upsertHabits([updatedHabit]);
+        await addOutbox({
+          id: updatedHabit.id,
+          type: "habit",
+          action: "upsert",
+          createdAt: updatedHabit.updatedAt,
+          payload: updatedHabit,
+          userId,
+        });
+      }
+      await addOutbox({
+        id: entry.id,
+        type: "entry",
+        action: "upsert",
+        createdAt: entry.updatedAt,
+        payload: entry,
+        userId,
+      });
+    },
+    [clearHabitStatus, updateState, userId]
+  );
+
   useEffect(() => {
     const handleOnline = () => {
       syncNow();
@@ -503,6 +611,7 @@ export function HabitsProvider({ children }: { children: React.ReactNode }) {
       removeHabit,
       setHabitStatus,
       clearHabitStatus,
+      setHabitSubActivityStatus,
       syncNow,
     }),
     [
@@ -514,6 +623,7 @@ export function HabitsProvider({ children }: { children: React.ReactNode }) {
       addHabit,
       removeHabit,
       setHabitStatus,
+      setHabitSubActivityStatus,
       clearHabitStatus,
       syncNow,
     ]

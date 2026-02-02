@@ -3,6 +3,7 @@ import { cn } from "@/lib/cn";
 
 type TextFieldProps = InputHTMLAttributes<HTMLInputElement> & {
   label: string;
+  helperText?: string;
 };
 
 function buildFieldId(label: string, name?: string, id?: string) {
@@ -18,7 +19,14 @@ function buildFieldId(label: string, name?: string, id?: string) {
     .replace(/(^-|-$)+/g, "");
 }
 
-export function TextField({ label, className, id, name, ...props }: TextFieldProps) {
+export function TextField({
+  label,
+  helperText,
+  className,
+  id,
+  name,
+  ...props
+}: TextFieldProps) {
   const inputId = buildFieldId(label, name, id);
 
   return (
@@ -38,6 +46,7 @@ export function TextField({ label, className, id, name, ...props }: TextFieldPro
         )}
         {...props}
       />
+      {helperText ? <p className="text-xs text-ink-subtle">{helperText}</p> : null}
     </div>
   );
 }

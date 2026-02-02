@@ -14,6 +14,7 @@ export function HabitForm({ onSubmitted }: HabitFormProps) {
   const [title, setTitle] = useState("");
   const [kind, setKind] = useState<HabitKind>("good");
   const [reviewWindowDays, setReviewWindowDays] = useState(7);
+  const [subActivities, setSubActivities] = useState("");
   const [errors, setErrors] = useState<{ title?: string; reviewWindowDays?: string }>({});
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -32,8 +33,13 @@ export function HabitForm({ onSubmitted }: HabitFormProps) {
     }
 
     setErrors({});
-    await addHabit(trimmedTitle, kind, reviewWindowDays);
+    const subActivityLabels = subActivities
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+    await addHabit(trimmedTitle, kind, reviewWindowDays, subActivityLabels);
     setTitle("");
+    setSubActivities("");
     onSubmitted?.();
   };
 
@@ -82,6 +88,25 @@ export function HabitForm({ onSubmitted }: HabitFormProps) {
           <option value="good">Good habit</option>
           <option value="bad">Bad habit</option>
         </select>
+      </div>
+      <div>
+        <label
+          htmlFor="habit-sub-activities"
+          className="text-xs font-semibold uppercase tracking-[0.3em] text-ink-subtle"
+        >
+          Sub-activities (optional)
+        </label>
+        <textarea
+          id="habit-sub-activities"
+          className="mt-2 w-full rounded-[var(--radius-soft)] border border-border bg-surface px-3 py-2 text-sm text-ink shadow-[var(--shadow-soft)] focus:outline-none focus:ring-2 focus:ring-accent/30"
+          placeholder={"One per line\nUpper body workout\nLower body workout\nEating bananas"}
+          rows={4}
+          value={subActivities}
+          onChange={(event) => setSubActivities(event.target.value)}
+        />
+        <p className="mt-2 text-xs text-ink-subtle">
+          Check off each sub-activity to complete the habit for the day.
+        </p>
       </div>
       <div>
         <label

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { PageShell } from "@/components/ui/PageShell";
 import { TextField } from "@/components/ui/TextField";
+import { PasswordField } from "@/components/ui/PasswordField";
 import { supabase } from "@/lib/supabaseClient";
 
 export default function SignUpPage() {
@@ -68,18 +69,16 @@ export default function SignUpPage() {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
         />
-        <TextField
+        <PasswordField
           label="Password"
-          type="password"
           name="password"
           autoComplete="new-password"
           required
           value={password}
           onChange={(event) => setPassword(event.target.value)}
         />
-        <TextField
+        <PasswordField
           label="Confirm password"
-          type="password"
           name="confirm-password"
           autoComplete="new-password"
           required

@@ -10,6 +10,7 @@ import {
   calculateStreak,
   calculateSuccessRate,
   formatDisplayDate,
+  getEntryStatus,
   getStatusLabels,
   getTodayKey,
 } from "../utils";
@@ -69,7 +70,7 @@ export function HabitDetail({ habitId }: HabitDetailProps) {
   const successRate = calculateSuccessRate(habit, reviewWindowDays);
   const labels = getStatusLabels(habit.kind);
   const todayKey = getTodayKey();
-  const todayStatus = habit.entries[todayKey]?.status ?? null;
+  const todayStatus = getEntryStatus(habit, todayKey);
 
   return (
     <div className="min-h-screen px-3 py-4 sm:px-10 sm:py-10">

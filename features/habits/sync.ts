@@ -7,6 +7,7 @@ type HabitRow = {
   title: string;
   kind: string;
   review_window_days: number;
+  sub_activities: { id: string; label: string }[] | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -18,6 +19,7 @@ type EntryRow = {
   user_id: string;
   entry_date: string;
   status: string;
+  sub_activity_statuses: Record<string, boolean> | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -36,6 +38,7 @@ function mapHabitToRow(habit: Habit, userId: string): HabitRow {
     title: habit.title,
     kind: habit.kind,
     review_window_days: habit.reviewWindowDays ?? 7,
+    sub_activities: habit.subActivities ?? [],
     created_at: habit.createdAt,
     updated_at: habit.updatedAt,
     deleted_at: habit.deletedAt ?? null,
@@ -49,6 +52,7 @@ function mapEntryToRow(entry: HabitEntry, userId: string): EntryRow {
     user_id: entry.userId ?? userId,
     entry_date: entry.date,
     status: entry.status,
+    sub_activity_statuses: entry.subActivityStatuses ?? null,
     created_at: entry.createdAt,
     updated_at: entry.updatedAt,
     deleted_at: entry.deletedAt ?? null,
@@ -62,6 +66,7 @@ function mapRowToHabit(row: HabitRow): Habit {
     title: row.title,
     kind: row.kind as Habit["kind"],
     reviewWindowDays: row.review_window_days ?? 7,
+    subActivities: row.sub_activities ?? [],
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at,
@@ -75,6 +80,7 @@ function mapRowToEntry(row: EntryRow): HabitEntry {
     userId: row.user_id,
     date: row.entry_date,
     status: row.status as HabitEntry["status"],
+    subActivityStatuses: row.sub_activity_statuses ?? undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at,

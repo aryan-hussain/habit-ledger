@@ -1,5 +1,5 @@
 import type { HabitWithEntries } from "../types";
-import { getLastNDays } from "../utils";
+import { getEntryStatus, getLastNDays } from "../utils";
 import { cn } from "@/lib/cn";
 
 type WeekStripProps = {
@@ -13,8 +13,7 @@ export function WeekStrip({ habit, days = 7 }: WeekStripProps) {
   return (
     <div className="mt-2 flex items-center gap-1 sm:mt-3 sm:gap-1.5">
       {keys.map((key) => {
-        const entry = habit.entries[key];
-        const status = entry?.status;
+        const status = getEntryStatus(habit, key);
         const label = status
           ? `${key}: ${status === "success" ? "Success" : "Fail"}`
           : `${key}: No entry`;

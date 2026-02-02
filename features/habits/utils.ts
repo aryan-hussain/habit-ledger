@@ -1,5 +1,12 @@
 import { createId } from "@/lib/id";
-import type { Habit, HabitEntry, HabitKind, HabitStatus, HabitWithEntries } from "./types";
+import type {
+  Habit,
+  HabitEntry,
+  HabitKind,
+  HabitStatus,
+  HabitWithEntries,
+  SubActivity,
+} from "./types";
 
 export type CalendarDay = {
   key: string;
@@ -81,15 +88,30 @@ export function getCalendarDays(baseDate: Date, weekStartsOn: 0 | 1 = 1) {
 export function createHabit(
   title: string,
   kind: HabitKind,
-  reviewWindowDays: number = 7
+  reviewWindowDays: number = 7,
+  subActivityLabels: string[] = []
 ): Habit {
   const timestamp = new Date().toISOString();
+  const seen = new Set<string>();
+  const subActivities: SubActivity[] = subActivityLabels
+    .map((label) => label.trim())
+    .filter(Boolean)
+    .filter((label) => {
+      const key = label.toLowerCase();
+      if (seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    })
+    .map((label) => ({ id: createId(), label }));
   return {
     id: createId(),
     userId: null,
     title: title.trim(),
     kind,
     reviewWindowDays: Math.max(0, Math.min(90, reviewWindowDays)),
+    subActivities,
     createdAt: timestamp,
     updatedAt: timestamp,
     deletedAt: null,
@@ -99,7 +121,8 @@ export function createHabit(
 export function createHabitEntry(
   habitId: string,
   date: string,
-  status: HabitStatus
+  status: HabitStatus,
+  subActivityStatuses: Record<string, boolean> | undefined = undefined
 ): HabitEntry {
   const timestamp = new Date().toISOString();
   return {
@@ -108,6 +131,7 @@ export function createHabitEntry(
     userId: null,
     date,
     status,
+    subActivityStatuses,
     createdAt: timestamp,
     updatedAt: timestamp,
     deletedAt: null,
@@ -128,15 +152,32 @@ export function getEntryStatus(
   habit: HabitWithEntries,
   dateKey: string
 ): HabitStatus | null {
-  return habit.entries[dateKey]?.status ?? null;
+  const entry = habit.entries[dateKey];
+  if (!entry) {
+    return null;
+  }
+  if (!habit.subActivities?.length) {
+    return entry.status ?? null;
+  }
+  if (!entry.subActivityStatuses) {
+    return entry.status ?? null;
+  }
+  const completedCount = habit.subActivities.reduce(
+    (count, activity) => count + (entry.subActivityStatuses?.[activity.id] ? 1 : 0),
+    0
+  );
+  if (completedCount >= habit.subActivities.length) {
+    return "success";
+  }
+  return completedCount > 0 ? "fail" : entry.status ?? null;
 }
 
 export function calculateStreak(habit: HabitWithEntries, baseDate: Date = new Date()) {
   let streak = 0;
   for (let offset = 0; offset < 365; offset += 1) {
     const key = getDateKey(addDays(baseDate, -offset));
-    const entry = habit.entries[key];
-    if (!entry || entry.status !== "success") {
+    const status = getEntryStatus(habit, key);
+    if (status !== "success") {
       break;
     }
     streak += 1;
@@ -156,7 +197,7 @@ export function calculateSuccessRate(
   let successes = 0;
 
   for (const key of keys) {
-    if (habit.entries[key]?.status === "success") {
+    if (getEntryStatus(habit, key) === "success") {
       successes += 1;
     }
   }
@@ -169,12 +210,12 @@ export function getDailySummary(habits: HabitWithEntries[], dateKey: string) {
   let successes = 0;
 
   for (const habit of habits) {
-    const entry = habit.entries[dateKey];
-    if (!entry) {
+    const status = getEntryStatus(habit, dateKey);
+    if (!status) {
       continue;
     }
     total += 1;
-    if (entry.status === "success") {
+    if (status === "success") {
       successes += 1;
     }
   }
