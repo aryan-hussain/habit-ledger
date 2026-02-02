@@ -232,15 +232,22 @@ export function HabitsProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
+        data: { session },
+      } = await supabase.auth.getSession();
+      const user = session?.user ?? null;
 
       if (!user) {
         setUserId(null);
+        setUserProfile(null);
         return;
       }
 
       setUserId(user.id);
+      setUserProfile({
+        id: user.id,
+        email: user.email ?? null,
+        fullName: (user.user_metadata?.full_name as string) ?? null,
+      });
       const outbox = await getOutbox();
       const processed = await pushOutbox(outbox, user.id);
       if (processed.length) {
@@ -266,15 +273,16 @@ export function HabitsProvider({ children }: { children: React.ReactNode }) {
     if (!supabaseReady) {
       return;
     }
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) {
-        setUserId(data.user.id);
+    supabase.auth.getSession().then(({ data }) => {
+      const user = data.session?.user;
+      if (user) {
+        setUserId(user.id);
         setUserProfile({
-          id: data.user.id,
-          email: data.user.email ?? null,
-          fullName: (data.user.user_metadata?.full_name as string) ?? null,
+          id: user.id,
+          email: user.email ?? null,
+          fullName: (user.user_metadata?.full_name as string) ?? null,
         });
-        attachLocalUser(data.user.id).then(syncNow);
+        attachLocalUser(user.id).then(syncNow);
       }
     });
   }, [attachLocalUser, syncNow]);
